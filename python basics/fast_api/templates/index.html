@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bank Management UI</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main class="page-shell">
+    <section class="hero">
+      <p class="eyebrow">FastAPI Project</p>
+      <h1>Bank Management Dashboard</h1>
+      <p class="hero-copy">
+        Create accounts, review balances, and perform deposits or withdrawals from one simple interface.
+      </p>
+    </section>
+
+    <section class="panel-grid">
+      <article class="panel">
+        <h2>Create Account</h2>
+        <div class="field-group">
+          <label for="acc_no">Account Number</label>
+          <input id="acc_no" type="text" placeholder="1001">
+        </div>
+        <div class="field-group">
+          <label for="acc_name">Account Holder</label>
+          <input id="acc_name" type="text" placeholder="Rithvik">
+        </div>
+        <div class="field-group">
+          <label for="acc_balance">Initial Balance</label>
+          <input id="acc_balance" type="number" placeholder="5000" min="0" step="0.01">
+        </div>
+        <button onclick="createAccount()">Create Account</button>
+      </article>
+
+      <article class="panel">
+        <h2>Get Account</h2>
+        <div class="field-group">
+          <label for="search_acc">Account Number</label>
+          <input id="search_acc" type="text" placeholder="1001">
+        </div>
+        <button onclick="getAccount()">Fetch Details</button>
+      </article>
+
+      <article class="panel">
+        <h2>Deposit Money</h2>
+        <div class="field-group">
+          <label for="dep_acc">Account Number</label>
+          <input id="dep_acc" type="text" placeholder="1001">
+        </div>
+        <div class="field-group">
+          <label for="dep_amt">Amount</label>
+          <input id="dep_amt" type="number" placeholder="1000" min="0.01" step="0.01">
+        </div>
+        <button onclick="deposit()">Deposit</button>
+      </article>
+
+      <article class="panel">
+        <h2>Withdraw Money</h2>
+        <div class="field-group">
+          <label for="with_acc">Account Number</label>
+          <input id="with_acc" type="text" placeholder="1001">
+        </div>
+        <div class="field-group">
+          <label for="with_amt">Amount</label>
+          <input id="with_amt" type="number" placeholder="500" min="0.01" step="0.01">
+        </div>
+        <button onclick="withdrawMoney()">Withdraw</button>
+      </article>
+    </section>
+
+    <section class="result-panel">
+      <div class="result-header">
+        <h2>Response</h2>
+        <button class="secondary" onclick="clearOutput()">Clear</button>
+      </div>
+      <pre id="output">Run an action to see the API response here.</pre>
+    </section>
+  </main>
+
+  <script>
+    const output = document.getElementById("output");
+
+    function showResult(status, data) {
+      output.textContent = JSON.stringify(
+        {
+          status,
+          data
+        },
+        null,
+        2
+      );
+    }
+
+    async function parseResponse(response) {
+      const data = await response.json().catch(() => ({ detail: "Unable to read server response" }));
+      showResult(response.status, data);
+    }
+
+    async function createAccount() {
+      const payload = {
+        account_number: document.getElementById("acc_no").value.trim(),
+        account_holder: document.getElementById("acc_name").value.trim(),
+        balance: parseFloat(document.getElementById("acc_balance").value)
+      };
+
+      const response = await fetch("/accounts/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      await parseResponse(response);
+    }
+
+    async function getAccount() {
+      const accountNumber = document.getElementById("search_acc").value.trim();
+      const response = await fetch(`/accounts/${accountNumber}`);
+      await parseResponse(response);
+    }
+
+    async function deposit() {
+      const accountNumber = document.getElementById("dep_acc").value.trim();
+      const amount = document.getElementById("dep_amt").value;
+      const response = await fetch(`/accounts/${accountNumber}/deposit?amount=${amount}`, {
+        method: "POST"
+      });
+      await parseResponse(response);
+    }
+
+    async function withdrawMoney() {
+      const accountNumber = document.getElementById("with_acc").value.trim();
+      const amount = document.getElementById("with_amt").value;
+      const response = await fetch(`/accounts/${accountNumber}/withdraw?amount=${amount}`, {
+        method: "POST"
+      });
+      await parseResponse(response);
+    }
+
+    function clearOutput() {
+      output.textContent = "Run an action to see the API response here.";
+    }
+  </script>
+</body>
+</html>
